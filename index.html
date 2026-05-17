@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPH Navigator Portal</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter & Noto Sans Thai -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Config for Custom Fonts -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans Thai', 'sans-serif'],
+                    },
+                    colors: {
+                        gray: {
+                            50: '#fafafa',
+                            100: '#f4f4f5',
+                            200: '#e4e4e7',
+                            900: '#18181b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Utilities for smooth minimal style */
+        body {
+            background-color: #fafafa;
+            color: #18181b;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.05);
+            border-color: #e4e4e7;
+        }
+
+        /* Modal transitions */
+        .modal-enter { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-enter-active { opacity: 1; pointer-events: auto; }
+        .modal-scale { transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-scale-active { transform: scale(1); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-gray-200 selection:text-gray-900">
+
+    <!-- Navigation Bar -->
+    <nav class="fixed w-full top-0 z-40 glass-nav transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 cursor-pointer">
+                <div class="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-white shadow-sm">
+                    <i data-lucide="compass" class="w-5 h-5"></i>
+                </div>
+                <span class="font-semibold text-lg tracking-tight">Community Public Health Portal</span>
+            </div>
+
+            <!-- Auth Section -->
+            <div id="auth-section">
+                <!-- State: Logged Out (Default) -->
+                <button onclick="openLoginModal()" id="login-btn" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2">
+                    <i data-lucide="log-in" class="w-4 h-4"></i>
+                    เข้าสู่ระบบ
+                </button>
+
+                <!-- State: Logged In (Hidden by default) -->
+                <div id="user-menu" class="hidden items-center gap-4">
+                    <div class="hidden sm:flex flex-col items-end">
+                        <span class="text-sm font-medium text-gray-900">ผู้ดูแลระบบ</span>
+                        <span class="text-xs text-gray-500">admin@cph.edu</span>
+                    </div>
+                    <div class="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center border border-gray-300 overflow-hidden cursor-pointer">
+                        <i data-lucide="user" class="w-5 h-5 text-gray-500"></i>
+                    </div>
+                    <button onclick="handleLogout()" class="text-gray-400 hover:text-red-500 transition-colors p-2" title="ออกจากระบบ">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-32 pb-20 px-6">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Header Section -->
+            <header class="mb-16 max-w-2xl">
+                <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-4 leading-tight">
+                    ศูนย์รวมบริการข้อมูล <br class="hidden sm:block"/>และระบบจัดการเรียนการสอน
+                </h1>
+                <p class="text-lg text-gray-500 font-light leading-relaxed">
+                    เลือกเข้าใช้งานระบบต่างๆ ได้จากศูนย์กลางนี้ ระบบถูกออกแบบมาให้เรียบง่ายและเข้าถึงได้รวดเร็ว
+                </p>
+            </header>
+
+            <!-- Apps Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="apps-grid">
+                <!-- Cards will be injected here by JavaScript -->
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-100 bg-white">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-gray-400 font-light">
+                &copy; <span id="year"></span> Anuwat Pengput's Portal. All rights reserved.
+            </p>
+            <div class="flex items-center gap-4 text-gray-400">
+                <a href="#" class="hover:text-gray-900 transition-colors"><i data-lucide="github" class="w-5 h-5"></i></a>
+                <a href="#" class="hover:text-gray-900 transition-colors"><i data-lucide="globe" class="w-5 h-5"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal (Overlay) -->
+    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-enter">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm" onclick="closeLoginModal()"></div>
+        
+        <!-- Modal Content -->
+        <div id="modal-content" class="relative bg-white w-full max-w-md mx-4 rounded-3xl shadow-2xl p-8 border border-gray-100 modal-scale">
+            <!-- Close Button -->
+            <button onclick="closeLoginModal()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="mb-8">
+                <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900 mb-5">
+                    <i data-lucide="lock" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-900 mb-2">เข้าสู่ระบบ</h2>
+                <p class="text-sm text-gray-500">ลงชื่อเข้าใช้เพื่อจัดการข้อมูลและหน้าเว็บ (Mockup)</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">อีเมล</label>
+                    <input type="email" required placeholder="admin@example.com" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all text-sm">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
+                        <a href="#" class="text-xs text-gray-500 hover:text-gray-900">ลืมรหัสผ่าน?</a>
+                    </div>
+                    <input type="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all text-sm">
+                </div>
+                
+                <button type="submit" class="w-full bg-gray-900 text-white font-medium py-3 rounded-xl hover:bg-gray-800 transition-colors mt-2 shadow-md hover:shadow-lg">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // 1. Data Structure - คุณสามารถเพิ่มหน้าเว็บใหม่ได้ที่นี่เลย
+        const pagesData = [
+            {
+                id: 'course-review',
+                title: 'Course Review',
+                description: 'ระบบติดตามการวิพากษ์รายวิชา สรุปสถานะการอัปโหลด มคอ.',
+                url: 'https://anuwatpe.github.io/cph-course-review/',
+                icon: 'book-open',
+                color: 'text-blue-600',
+                bg: 'bg-blue-50'
+            },
+            {
+                id: 'grades',
+                title: 'Grades Check',
+                description: 'ระบบจัดการ ตรวจสอบ และติดตามผลการเรียนของหลักสูตร',
+                url: 'https://anuwatpe.github.io/cph-grades/',
+                icon: 'graduation-cap',
+                color: 'text-emerald-600',
+                bg: 'bg-emerald-50'
+            },
+            {
+                id: 'publications',
+                title: 'Publications',
+                description: 'แหล่งรวมผลงานตีพิมพ์ งานวิจัย และเอกสารทางวิชาการ',
+                url: 'https://anuwatpe.github.io/cph-publications/',
+                icon: 'file-text',
+                color: 'text-indigo-600',
+                bg: 'bg-indigo-50'
+            }
+        ];
+
+        // State Management
+        let isLoggedIn = false;
+
+        // 2. Render Functions
+        function renderGrid() {
+            const grid = document.getElementById('apps-grid');
+            grid.innerHTML = ''; // Clear current
+
+            // Render existing pages
+            pagesData.forEach(page => {
+                grid.innerHTML += `
+                    <a href="${page.url}" target="_blank" class="group block bg-white border border-gray-100 rounded-3xl p-7 card-hover relative overflow-hidden">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 rounded-2xl ${page.bg} flex items-center justify-center ${page.color}">
+                                <i data-lucide="${page.icon}" class="w-6 h-6"></i>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">${page.title}</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed font-light line-clamp-2">
+                            ${page.description}
+                        </p>
+                    </a>
+                `;
+            });
+
+            // If logged in, show "Add New Page" card
+            if (isLoggedIn) {
+                grid.innerHTML += `
+                    <button onclick="alert('ฟีเจอร์สำหรับเพิ่มหน้าเว็บใหม่ (เชื่อมต่อ Database/GitHub API ในอนาคต)')" class="group block bg-transparent border-2 border-dashed border-gray-200 rounded-3xl p-7 hover:border-gray-400 hover:bg-gray-50 transition-all duration-300 text-left h-full min-h-[200px] flex flex-col items-center justify-center">
+                        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 group-hover:text-gray-900 group-hover:scale-110 transition-all duration-300 mb-4">
+                            <i data-lucide="plus" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-600 group-hover:text-gray-900 transition-colors">เพิ่มหน้าเว็บใหม่</h3>
+                    </button>
+                `;
+            }
+
+            // Re-initialize icons for newly added elements
+            lucide.createIcons();
+        }
+
+        function updateUIState() {
+            const loginBtn = document.getElementById('login-btn');
+            const userMenu = document.getElementById('user-menu');
+
+            if (isLoggedIn) {
+                loginBtn.classList.add('hidden');
+                userMenu.classList.remove('hidden');
+                userMenu.classList.add('flex');
+            } else {
+                loginBtn.classList.remove('hidden');
+                userMenu.classList.add('hidden');
+                userMenu.classList.remove('flex');
+            }
+
+            // Re-render grid to show/hide admin controls
+            renderGrid();
+        }
+
+        // 3. Modal Controls
+        const modal = document.getElementById('login-modal');
+        const modalContent = document.getElementById('modal-content');
+
+        function openLoginModal() {
+            modal.classList.add('modal-enter-active');
+            modalContent.classList.add('modal-scale-active');
+        }
+
+        function closeLoginModal() {
+            modal.classList.remove('modal-enter-active');
+            modalContent.classList.remove('modal-scale-active');
+        }
+
+        // 4. Auth Handlers
+        function handleLogin(e) {
+            e.preventDefault(); // Prevent form submission reload
+            
+            // Mock Login Process (Here you would connect to Firebase/Backend)
+            // console.log('Logging in...');
+            
+            isLoggedIn = true;
+            updateUIState();
+            closeLoginModal();
+            
+            // Optional: Reset form
+            e.target.reset();
+        }
+
+        function handleLogout() {
+            isLoggedIn = false;
+            updateUIState();
+        }
+
+        // 5. Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set current year in footer
+            document.getElementById('year').textContent = new Date().getFullYear();
+            
+            // Initial Render
+            updateUIState();
+            
+            // Initialize Icons
+            lucide.createIcons();
+        });
+
+    </script>
+</body>
+</html>
